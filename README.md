@@ -45,3 +45,16 @@ npm start
 5. Open the App \
 Go to ```http://localhost:3000``` in your browser
 
+## Currently working on: 
+1. Integrating firebase to save the chats when refreshed
+2. **Issue** : If two persons having same username join the same room, it is not able to differentiate between the two users.
+3. Better UI.
+
+## Why did I choose this project?
+I have a interest in building things and learning things by doing projects. I wanted to learn websockets and I thought this will be the perfect project to learn Websockets in a way I will enjoy.
+
+## Key learnings: 
+1. This project helped me improve my hands over node.js
+2. I learnt websockets
+3. Learnt how to approach a completely new problem from scratch.
+
