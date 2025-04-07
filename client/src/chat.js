@@ -17,9 +17,16 @@ function Chat({socket, username, room}) {
                 time : new Date().toLocaleTimeString(),
                 timestamp: serverTimestamp()
             }
-
+            try{
+                console.log("Trying to write to:", `room/${room}/messages`);
+                await addDoc(collection(db, "rooms", room, "messages"), messageData);
+                console.log('message sent');
+            }
+            catch(e){
+                console.error('error sending message',e);
+            }
             await socket.emit('send_message', messageData);
-            await addDoc(collection(db, "messages"), messageData);
+            //await addDoc(collection(db, "room", room, "messages"), messageData);
             setMessageList((list) => [...list, messageData]);
         }   
     }
@@ -33,16 +40,16 @@ function Chat({socket, username, room}) {
     }, [socket]);
 
     useEffect(() => {
-        if (!db) return; 
+        if(!room) return;
     
-        const q = query(collection(db, "messages"), orderBy("timestamp"));
+        const q = query(collection(db, "rooms", room, "messages"), orderBy("timestamp"));
     
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setMessageList(snapshot.docs.map(doc => doc.data()));
         });
     
-        return () => unsubscribe(); // Cleanup subscription on unmount
-    }, []);  
+        return () => unsubscribe(); 
+    }, [room]);  
 
     return (
         <div className='chat-window'>
