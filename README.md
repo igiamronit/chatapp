@@ -7,6 +7,7 @@ Real time chatapp made using React for frontend, Node.js and Socket.io for backe
 ### Features: 
 1. Real-time messaging using WebSockets
 2. Local server-based chat without authentication
+3. **Note that basic firebase integration has been done but major changes is yet to implement yet**.
 
 ### Project Structure: 
 ```
@@ -48,7 +49,7 @@ Go to ```http://localhost:3000``` in your browser
 ## Currently working on: 
 1. Integrating firebase to save the chats when refreshed
 2. **Issue** : If two persons having same username join the same room, it is not able to differentiate between the two users.
-3. Better UI.
+4. Better UI.
 
 ## Why did I choose this project?
 I have a interest in building things and learning things by doing projects. I wanted to learn websockets and I thought this will be the perfect project to learn Websockets in a way I will enjoy.
