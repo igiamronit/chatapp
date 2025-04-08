@@ -27,7 +27,7 @@ function Chat({socket, username, room}) {
             }
             await socket.emit('send_message', messageData);
             //await addDoc(collection(db, "room", room, "messages"), messageData);
-            setMessageList((list) => [...list, messageData]);
+            //setMessageList((list) => [...list, messageData]);
         }   
     }
 
