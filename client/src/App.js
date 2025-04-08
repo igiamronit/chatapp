@@ -4,7 +4,7 @@ import {io} from 'socket.io-client'
 import React, {useState} from 'react'
 import Chat from './chat'
 
-const socket = io(process.env.REACT_APP_BACKEND_URL);
+const socket = io("https://chatapp-ylh8.onrender.com");
 
 function App() {
   const [username, setUsername] = useState("");
@@ -40,5 +40,8 @@ function App() {
     </div>
   );
 }
+
+console.log("Firebase Key:", process.env.REACT_APP_FIREBASE_API_KEY);
+
 
 export default App;
