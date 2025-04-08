@@ -32,7 +32,7 @@ function Chat({socket, username, room}) {
     }
 
     useEffect(() => {
-        socket.off('recieve_message').on('recieve_message', (data) =>{
+        socket.off('receive_message').on('receive_message', (data) =>{
             //console.log(data);
             setMessageList((list) => [...list, data]);
         })
