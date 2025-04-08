@@ -16,16 +16,18 @@ function Chat({socket, username, room}) {
                 message : currentMessage,
                 time : new Date().toLocaleTimeString(),
                 timestamp: serverTimestamp()
-            }
+            };
             try{
-                console.log("Trying to write to:", `room/${room}/messages`);
+                //console.log("Trying to write to:", `room/${room}/messages`);
                 await addDoc(collection(db, "rooms", room, "messages"), messageData);
-                console.log('message sent');
+                //console.log('message sent');
             }
             catch(e){
-                console.error('error sending message',e);
+                //console.error('error sending message',e);
             }
             await socket.emit('send_message', messageData);
+            setMessageList((list) => [...list, { ...messageData, timestamp: { seconds: Date.now() / 1000 } }]);
+            setCurrentMessage("");
             //await addDoc(collection(db, "room", room, "messages"), messageData);
             //setMessageList((list) => [...list, messageData]);
         }   
@@ -47,6 +49,17 @@ function Chat({socket, username, room}) {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setMessageList(snapshot.docs.map(doc => doc.data()));
         });
+
+        setMessageList((prevList) => {
+            const seen = new Set();
+            const combined = [...prevList, ...fetchedMessages].filter((msg) => {
+              const id = `${msg.timestamp?.seconds}-${msg.author}-${msg.message}`;
+              if (seen.has(id)) return false;
+              seen.add(id);
+              return true;
+            });
+            return combined;
+          });
     
         return () => unsubscribe(); 
     }, [room]);  
