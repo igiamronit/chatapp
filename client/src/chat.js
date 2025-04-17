@@ -1,113 +1,114 @@
-import React, { useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react';
 import ScrollToBottom from 'react-scroll-to-bottom';
-import {db} from './firebaseConfig';
-import {collection, addDoc, serverTimestamp, query, orderBy, onSnapshot} from 'firebase/firestore';
+import { db } from './firebaseConfig';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
 
-function Chat({socket, username, room}) {
-    const [currentMessage, setCurrentMessage] = React.useState("");
-    const [messageList, setMessageList] = React.useState([]);
+function Chat({ socket, username, room }) {
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [messageList, setMessageList] = useState([]);
 
+  const sendMessage = async () => {
+    if (currentMessage.trim() !== '') {
+      const messageData = {
+        room,
+        author: username,
+        message: currentMessage,
+        time: new Date().toLocaleTimeString(),
+        timestamp: serverTimestamp(),
+      };
 
-    const sendMessage = async () => {
-        if(currentMessage !== ""){
-            const messageData = {
-                room: room,
-                author: username,
-                message : currentMessage,
-                time : new Date().toLocaleTimeString(),
-                timestamp: serverTimestamp()
-            };
-            try{
-                //console.log("Trying to write to:", `room/${room}/messages`);
-                await addDoc(collection(db, "rooms", room, "messages"), messageData);
-                //console.log('message sent');
-            }
-            catch(e){
-                //console.error('error sending message',e);
-            }
-            await socket.emit('send_message', messageData);
-            setMessageList((list) => [...list, { ...messageData, timestamp: { seconds: Date.now() / 1000 } }]);
-            setCurrentMessage("");
-            //await addDoc(collection(db, "room", room, "messages"), messageData);
-            //setMessageList((list) => [...list, messageData]);
-        }   
+      try {
+        await addDoc(collection(db, 'rooms', room, 'messages'), messageData);
+      } catch (e) {
+        // handle error if needed
+      }
+
+      socket.emit('send_message', messageData);
+      setMessageList((list) => [
+        ...list,
+        { ...messageData, timestamp: { seconds: Date.now() / 1000 } },
+      ]);
+      setCurrentMessage('');
     }
+  };
 
-    useEffect(() => {
-        socket.on("receive_message", (data) => {
-          setMessageList((list) => [...list, data]);
-        });
-      
-        return () => {
-          socket.off("receive_message");
-        };
-      }, [socket]);
+  useEffect(() => {
+    socket.on('receive_message', (data) => {
+      setMessageList((list) => [...list, data]);
+    });
 
-    useEffect(() => {
-        if(!room) return;
-    
-        const q = query(collection(db, "rooms", room, "messages"), orderBy("timestamp"));
-    
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setMessageList(snapshot.docs.map(doc => doc.data()));
-        });
+    return () => {
+      socket.off('receive_message');
+    };
+  }, [socket]);
 
-        setMessageList((prevList) => {
-            const seen = new Set();
-            const combined = [...prevList, ...fetchedMessages].filter((msg) => {
-              const id = `${msg.timestamp?.seconds}-${msg.author}-${msg.message}`;
-              if (seen.has(id)) return false;
-              seen.add(id);
-              return true;
-            });
-            return combined;
-          });
-    
-        return () => unsubscribe(); 
-    }, [room]);  
+  useEffect(() => {
+    if (!room) return;
 
-    return (
-        <div className='chat-window'>
-            <div className='chat-header'>
-                <p>Live Chat</p>
+    const q = query(
+      collection(db, 'rooms', room, 'messages'),
+      orderBy('timestamp')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessageList(snapshot.docs.map((doc) => doc.data()));
+    });
+
+    return () => unsubscribe();
+  }, [room]);
+
+  return (
+    <div className='chat-window'>
+      <div className='chat-header'>
+        <p>💬 Live Chat</p>
+      </div>
+
+      <div className='chat-body'>
+        <ScrollToBottom className='message-container'>
+          {messageList.map((msg, index) => (
+            <div
+              className='message'
+              id={username === msg.author ? 'you' : 'other'}
+              key={index}
+            >
+              <div>
+                <div className='message-content'>
+                  <p>{msg.message}</p>
+                </div>
+                <div className='message-meta'>
+                  <p id='time'>{msg.time}</p>
+                  <p id='author'>{msg.author}</p>
+                </div>
+              </div>
             </div>
-            <div className='chat-body'>
-                <ScrollToBottom className='message-container'>
-                {messageList.map((messageContent) => {
-                    
-                    return <div className='message' id = {username === messageContent.author? 'you' : 'other'}>
-                      <div>
-                        <div className='message-content'>
-                            <p>{messageContent.message}</p>
-                        </div>
-                        <div className='message-meta'>
-                            <p id='time'>{messageContent.time} </p>
-                            <p id='author'>{messageContent.author}</p>
-                        </div>
-                      </div>  
-                    </div>
-                })}
-                </ScrollToBottom>
-            </div>
-            <div className='chat-footer'>
-                <input type = "text"
-                 placeholder='Message'
-                 onChange={(event) =>{
-                    setCurrentMessage(event.target.value);
-                }}
-                onKeyDown={(event) => {
-                    if(event.key === 'Enter') {
-                        sendMessage();
-                        event.target.value = "";
-                        setCurrentMessage("");
+          ))}
+        </ScrollToBottom>
+      </div>
 
-                    }
-                }}    
-                />
-                <button onClick={sendMessage} >&#9658;</button>
-            </div>  
-        </div>
-    )
+      <div className='chat-footer'>
+        <input
+          type='text'
+          placeholder='Type your message...'
+          value={currentMessage}
+          onChange={(e) => setCurrentMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              sendMessage();
+              setCurrentMessage('');
+            }
+          }}
+        />
+        <button onClick={sendMessage}>&#9658;</button>
+      </div>
+    </div>
+  );
 }
 
 export default Chat;
